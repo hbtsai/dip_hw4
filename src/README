@@ -13,15 +13,12 @@ DBG_CXXFLAGS= -D_DEBUG -g
 CXXFLAGS= -w $(DBG_CXXFLAGS) 
 
 CC=gcc
-DBG_CFLAGS= -D_DEBUG -g
+DBG_CFLAGS= #-D_DEBUG -g
 CFLAGS= -w  $(DBG_CXXFLAGS) 
-LIBS= -lm -fopenmp
+LIBS= -lm #-fopenmp 
 
-p1_SOURCES=dip_p1.c
-p2_SOURCES=dip_p2.c
-
-p1_OBJS=$(p1_SOURCES:.c=.o)
-p2_OBJS=$(p2_SOURCES:.c=.o)
+p1_OBJS=dip_p1.o
+p2_OBJS=dip_p2.o
 
 all: help dip_p1 #dip_p2
 
@@ -48,8 +45,9 @@ run:
 #	@echo "    LOG: executing problem 2: ./dip_p2 sample2.raw"
 #	./dip_p2 sample2.raw
 
-.cpp.o:
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< 
+%.o:%.c
+	@echo "    LOG: creating problem 1 object"
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@ $(LIBS)
 
 clean:
 	rm -fr dip_p1 dip_p2 *.o

@@ -4,6 +4,7 @@
 #include <math.h>
 #include <limits.h>
 #include <float.h>
+#include <omp.h>
 
 #define Size 256
 
@@ -121,8 +122,8 @@ void DFT( int N, COMPLEX* image_clx,  COMPLEX* dft_clx, int inv)
 {
     int u, v, j, k; 
 
-    COMPLEX sum;
-    COMPLEX tmp;
+    COMPLEX sum[Size*Size];
+    COMPLEX tmp, tmp2;
     double theta;
     double p;
     theta = 2*M_PI/N;
@@ -130,33 +131,27 @@ void DFT( int N, COMPLEX* image_clx,  COMPLEX* dft_clx, int inv)
     if(inv)
         theta=-theta;
 
-    /*
-    for(u=0; u<Size; u++)
-        for(v=0; v<Size; v++)
-            image_clx[u*Size+v].r=image_clx[u*Size+v].r*pow(-1, (u+v));
-    */
-
     for(u=-N/2; u<N/2; u++)
     {
         for(v=-N/2; v<N/2; v++)
         {
-            sum.r=0;
-            sum.i=0;
+            sum[(u+N/2)*Size+(v+N/2)].r=0;
+            sum[(u+N/2)*Size+(v+N/2)].i=0;
+#pragma omp parallel for firstprivate(image_clx, N, theta) private(tmp, p) collapse(2)
             for(j=-N/2; j<N/2; j++) 
             {
-                tmp.r = 0;
-                tmp.i = 0;
                 for(k=-N/2; k<N/2; k++)
                 {
+                    tmp.r = 0;
+                    tmp.i = 0;
                     p = (theta*u*j+theta*v*k);
                     tmp.r = cos(p);
                     tmp.i = -1*sin(p);
-                    sum = complex_plus(sum, complex_times( image_clx[(j+N/2)*N+(k+N/2)], tmp ));
+                    tmp2=complex_times( image_clx[(j+N/2)*N+(k+N/2)], tmp );
+                    sum[(u+N/2)*Size+(v+N/2)] = complex_plus(sum[(u+N/2)*Size+(v+N/2)], tmp2 );
                 }
             }
-            sum.i=sum.i;
-            sum.r=sum.r;
-            dft_clx[(u+N/2)*N+(v+N/2)] = sum;
+            dft_clx[(u+N/2)*N+(v+N/2)] = sum[(u+N/2)*N+(v+N/2)];
         }
     }
 }
@@ -216,14 +211,24 @@ int main(int argc, char** argv)
     fprintf(stderr, "mmax=%f min=%f\n", mmax, mmin);
 
     for(i=0; i<Size*Size; i++)
-        mag[i]=(unsigned char)(complex_mag(dft_r[i])*254/mmax);
+        mag[i]=(unsigned char)(mag_d[i]*254/mmax);
 
 	write_pgm_image("dft_mag.pgm", Size, Size, mag);
 
     double c = 255/log(1+mmax);
-    unsigned char mag_log[Size*Size]={};
+    unsigned char mag_log10[Size*Size]={};
+    mmax=DBL_MIN;
+    mmin=DBL_MAX;
     for(i=0; i<Size*Size;i++)
-        mag_log[i]=(unsigned char)(c*complex_mag(dft_r[i]));
+    {
+        mag_log[i]=(unsigned char)(c*log10(mag_d[i]+1));
+        if(mag_log[i]>mmax)
+            mmax=mag_log[i];
+        if(mag_log[i]<mmin)
+            mmin=mag_log[i];
+    }
+
+    fprintf(stderr, "mmax=%f min=%f\n", mmax, mmin);
 
 	write_pgm_image("dft_mag_log.pgm", Size, Size, mag_log);
 
