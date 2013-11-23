@@ -151,6 +151,8 @@ void DFT( int N, COMPLEX* image_clx,  COMPLEX* dft_clx, int inv)
                     sum[(u+N/2)*Size+(v+N/2)] = complex_plus(sum[(u+N/2)*Size+(v+N/2)], tmp2 );
                 }
             }
+            sum[(u+N/2)*N+(v+N/2)].r=sum[(u+N/2)*N+(v+N/2)].r/N;
+            sum[(u+N/2)*N+(v+N/2)].i=sum[(u+N/2)*N+(v+N/2)].i/N;
             dft_clx[(u+N/2)*N+(v+N/2)] = sum[(u+N/2)*N+(v+N/2)];
         }
     }
@@ -215,13 +217,13 @@ int main(int argc, char** argv)
 
 	write_pgm_image("dft_mag.pgm", Size, Size, mag);
 
-    double c = 255/log(1+mmax);
-    unsigned char mag_log10[Size*Size]={};
+    double c = 255/log2(1+mmax);
+    unsigned char mag_log[Size*Size]={};
     mmax=DBL_MIN;
     mmin=DBL_MAX;
     for(i=0; i<Size*Size;i++)
     {
-        mag_log[i]=(unsigned char)(c*log10(mag_d[i]+1));
+        mag_log[i]=(unsigned char)(c*log2(mag_d[i]+1));
         if(mag_log[i]>mmax)
             mmax=mag_log[i];
         if(mag_log[i]<mmin)
