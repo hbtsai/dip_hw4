@@ -13,8 +13,8 @@ DBG_CXXFLAGS= -D_DEBUG -g
 CXXFLAGS= -w $(DBG_CXXFLAGS) 
 
 CC=gcc
-DBG_CFLAGS= #-D_DEBUG -g
-CFLAGS= -w  $(DBG_CXXFLAGS) 
+DBG_CFLAGS= -D_DEBUG -g
+CFLAGS= -w $(DBG_CXXFLAGS) 
 LIBS= -lm #-fopenmp 
 
 p1_OBJS=dip_p1.o
@@ -40,8 +40,8 @@ help:
 	@echo "-------- INSTRUCTION   END --------"
 
 run: 
-	@echo "    LOG: executing problem 1: ./dip_p1 sample1.raw"
-	./dip_p1 sample1.raw
+	@echo "    LOG: executing problem 1: ./dip_p1 black.raw"
+	./dip_p1 black.raw
 #	@echo "    LOG: executing problem 2: ./dip_p2 sample2.raw"
 #	./dip_p2 sample2.raw
 
